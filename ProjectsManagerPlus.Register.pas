@@ -15,14 +15,6 @@ uses
   ProjectsManagerPlus.Types;
 
 type
-{$IF CompilerVersion < 21.0} // Delphi < 2010
-  TProjectPlusMenuNotifier = class(TNotifierObject, INTAProjectMenuCreatorNotifier)
-  public
-    { INTAProjectMenuCreatorNotifier }
-    function AddMenu(const Ident: string): TMenuItem;
-    function CanHandle(const Ident: string): Boolean;
-  end;
-{$ELSE} // Delphi 2010+ including RAD Studio 12
   TProjectPlusMenuNotifier = class(TNotifierObject, IOTAProjectMenuItemCreatorNotifier)
   public
     { IOTAProjectMenuItemCreatorNotifier }
@@ -66,15 +58,14 @@ type
     function PreExecute(const MenuContextList: IInterfaceList): Boolean;
     function PostExecute(const MenuContextList: IInterfaceList): Boolean;
   end;
-{$ENDIF}
 
 procedure Register;
 
 implementation
 
 var
-  MenuNotifier: TProjectPlusMenuNotifier;
-  NotifierIndex: Integer = -1;
+  GMenuNotifier: TProjectPlusMenuNotifier;
+  GNotifierIndex: Integer = -1;
 
 const
   sFileContainer = 'FileContainer';
@@ -84,30 +75,6 @@ const
   sBaseContainer = 'BaseContainer';
 
 { TProjectPlusMenuNotifier }
-
-{$IF CompilerVersion < 21.0} // Delphi < 2010
-function TProjectPlusMenuNotifier.AddMenu(const Ident: string): TMenuItem;
-begin
-  OutputDebugString(PChar('TProjectPlusMenuNotifier.AddMenu called with Ident: ' + Ident));
-
-  Result := nil;
-
-  if not CanHandle(Ident) then
-  begin
-    OutputDebugString(PChar('CanHandle returned False for Ident: ' + Ident));
-    Exit;
-  end;
-
-  OutputDebugString(PChar('Creating menu for Ident: ' + Ident));
-
-  // Create a simple test menu item
-  Result := TMenuItem.Create(nil);
-  Result.Caption := 'Add Folder (ProjectPlus)';
-  // Don't assign OnClick for now, just test if menu appears
-  
-  OutputDebugString(PChar('Menu created successfully for Ident: ' + Ident));
-end;
-{$ELSE} // Delphi 2010+
 
 procedure TProjectPlusMenuNotifier.AddMenu(const Project: IOTAProject;
   const IdentList: TStrings; const ProjectManagerMenuList: IInterfaceList;
@@ -122,20 +89,16 @@ begin
 
   OutputDebugString(PChar('ProjectsManagerPlus: AddMenu - IdentList.Count: ' + IntToStr(IdentList.Count)));
 
-  // Implementação baseada na documentação do Delphi IDE Open Tools API
-  // Verifica se o contexto é sProjectContainer (projeto)
   for LFor := 0 to IdentList.Count - 1 do
   begin
     if sProjectContainer = IdentList[LFor] then
     begin
-      // Para projetos: apenas Add Folder
       ProjectManagerMenuList.Add(TProjectPlusMenuItem.Create(
         'Add Folder...', 'AddFolder', 'AddFolders', '', High(Integer), Project));
       OutputDebugString(PChar('ProjectsManagerPlus: Menu Add Folder criado para projeto'));
     end
     else if sDirectoryContainer = IdentList[LFor] then
     begin
-      // Para pastas: Add Unit, Add Folder, Remove Folder
       ProjectManagerMenuList.Add(TProjectPlusMenuItem.Create(
         'New Unit...', 'NewUnit', 'NewUnit', '', 100, Project));
       ProjectManagerMenuList.Add(TProjectPlusMenuItem.Create(
@@ -148,19 +111,16 @@ begin
     end;
   end;
 end;
-{$ENDIF}
 
 function TProjectPlusMenuNotifier.CanHandle(const Ident: string): Boolean;
 begin
   OutputDebugString(PChar('TProjectPlusMenuNotifier.CanHandle called with Ident: ' + Ident));
-  
-  // Apenas para projetos e pastas - simples e direto
+
   Result := (Ident = sProjectContainer) or (Ident = sDirectoryContainer);
-  
+
   OutputDebugString(PChar('CanHandle result: ' + BoolToStr(Result, True) + ' for Ident: ' + Ident));
 end;
 
-{$IF CompilerVersion >= 21.0} // Delphi 2010+
 { TProjectPlusMenuItem }
 
 constructor TProjectPlusMenuItem.Create(const ACaption, AName, AVerb, AParent: string; APosition: Integer; AProject: IOTAProject);
@@ -297,9 +257,9 @@ begin
         end;
       end;
     end;
-    
+
     OutputDebugString(PChar('Selected path: ' + LSelectedPath));
-    
+
     // Find the correct project that contains the selected path
     if (LSelectedPath <> '') and Assigned(BorlandIDEServices) then
     begin
@@ -314,7 +274,7 @@ begin
             LProjectPath := ExtractFilePath(LCurrentProject.FileName);
             OutputDebugString(PChar('Checking project: ' + LCurrentProject.FileName));
             OutputDebugString(PChar('Project path: ' + LProjectPath));
-            
+
             // Check if selected path starts with this project's path
             if (LProjectPath <> '') and (Pos(UpperCase(LProjectPath), UpperCase(LSelectedPath)) = 1) then
             begin
@@ -326,7 +286,7 @@ begin
         end;
       end;
     end;
-    
+
     // If no correct project found, use the original FProject as fallback
     if not Assigned(LCorrectProject) then
     begin
@@ -337,19 +297,17 @@ begin
         OutputDebugString(PChar('Using fallback project: ' + FProject.FileName));
       end;
     end;
-    
+
     OutputDebugString(PChar('Final selected path: ' + LSelectedPath));
     OutputDebugString(PChar('Final project path: ' + LProjectPath));
-    
-    // Handle menu actions directly - no parent menu needed
-    
+
     // Handle parent menu - no action needed, just display submenu
     if FVerb = 'AddMenu' then
     begin
       OutputDebugString(PChar('Parent Add menu clicked - showing submenu'));
-      Exit; // Parent menu doesn't execute any command
+      Exit;
     end;
-    
+
     // Create command based on verb
     case IndexText(FVerb, ['NewUnit', 'NewFolder', 'AddFolders', 'RemoveUnitsFromFolder']) of
       0: // NewUnit
@@ -377,14 +335,14 @@ begin
       MessageDlg('Unknown command: ' + FVerb, mtError, [mbOK], 0);
       Exit;
     end;
-    
+
     // Execute command
     if Assigned(LCommand) then
     begin
       OutputDebugString(PChar('Executing command: ' + LCommand.GetName));
       LCommand.Execute;
     end;
-    
+
   except
     on E: Exception do
     begin
@@ -403,54 +361,40 @@ function TProjectPlusMenuItem.PostExecute(const MenuContextList: IInterfaceList)
 begin
   Result := False;
 end;
-{$ENDIF}
 
 procedure Register;
 begin
   OutputDebugString(PChar('ProjectsManagerPlus: Register procedure called'));
-  
+
   if not Assigned(BorlandIDEServices) then
   begin
     OutputDebugString(PChar('ProjectsManagerPlus: BorlandIDEServices is not assigned'));
     Exit;
   end;
-  
+
   OutputDebugString(PChar('ProjectsManagerPlus: BorlandIDEServices is assigned'));
-  
+
   // Avoid double registration
-  if Assigned(MenuNotifier) then
+  if Assigned(GMenuNotifier) then
   begin
     OutputDebugString(PChar('ProjectsManagerPlus: MenuNotifier already exists, skipping registration'));
     Exit;
   end;
-  
-  MenuNotifier := TProjectPlusMenuNotifier.Create;
-  
-{$IF CompilerVersion < 21.0} // Delphi < 2010
+
+  GMenuNotifier := TProjectPlusMenuNotifier.Create;
+
   try
-    NotifierIndex := (BorlandIDEServices as IOTAProjectManager).AddMenuCreatorNotifier(MenuNotifier);
-    OutputDebugString(PChar('ProjectsManagerPlus: Menu creator notifier added (Delphi < 2010) - Index: ' + IntToStr(NotifierIndex)));
-  except
-    on E: Exception do
-    begin
-      OutputDebugString(PChar('ProjectsManagerPlus: Error adding menu creator notifier: ' + E.Message));
-      FreeAndNil(MenuNotifier);
-    end;
-  end;
-{$ELSE} // Delphi 2010+ including RAD Studio 12
-  try
-    NotifierIndex := (BorlandIDEServices as IOTAProjectManager).AddMenuItemCreatorNotifier(MenuNotifier);
-    OutputDebugString(PChar('ProjectsManagerPlus: Menu item creator notifier added (Delphi 2010+) - Index: ' + IntToStr(NotifierIndex)));
+    GNotifierIndex := (BorlandIDEServices as IOTAProjectManager).AddMenuItemCreatorNotifier(GMenuNotifier);
+    OutputDebugString(PChar('ProjectsManagerPlus: Menu item creator notifier added (Delphi 2010+) - Index: ' + IntToStr(GNotifierIndex)));
   except
     on E: Exception do
     begin
       OutputDebugString(PChar('ProjectsManagerPlus: Error adding menu item creator notifier: ' + E.Message));
-      FreeAndNil(MenuNotifier);
+      FreeAndNil(GMenuNotifier);
     end;
   end;
-{$ENDIF}
-  
-  if NotifierIndex >= 0 then
+
+  if GNotifierIndex >= 0 then
     OutputDebugString(PChar('ProjectsManagerPlus: Registration completed successfully'))
   else
     OutputDebugString(PChar('ProjectsManagerPlus: Registration failed - invalid notifier index'));
@@ -459,24 +403,18 @@ end;
 procedure Finalize;
 begin
   OutputDebugString(PChar('ProjectsManagerPlus: Finalize procedure called'));
-  
-  if Assigned(MenuNotifier) and (NotifierIndex >= 0) then
+
+  if Assigned(GMenuNotifier) and (GNotifierIndex >= 0) then
   begin
     try
-{$IF CompilerVersion < 21.0} // Delphi < 2010
-      (BorlandIDEServices as IOTAProjectManager).RemoveMenuCreatorNotifier(NotifierIndex);
-      OutputDebugString(PChar('ProjectsManagerPlus: Menu creator notifier removed (Delphi < 2010)'));
-{$ELSE} // Delphi 2010+
-      (BorlandIDEServices as IOTAProjectManager).RemoveMenuItemCreatorNotifier(NotifierIndex);
+      (BorlandIDEServices as IOTAProjectManager).RemoveMenuItemCreatorNotifier(GNotifierIndex);
       OutputDebugString(PChar('ProjectsManagerPlus: Menu item creator notifier removed (Delphi 2010+)'));
-{$ENDIF}
     except
       on E: Exception do
         OutputDebugString(PChar('ProjectsManagerPlus: Error removing notifier: ' + E.Message));
     end;
-    
-    MenuNotifier := nil;
-    NotifierIndex := -1;
+    GMenuNotifier := nil;
+    GNotifierIndex := -1;
   end;
   
   OutputDebugString(PChar('ProjectsManagerPlus: Finalization completed'));

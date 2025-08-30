@@ -25,7 +25,6 @@ type
     btnOK: TButton;
     btnCancel: TButton;
     procedure btnBrowseClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
   private
     function _GetSelectedFolder: string;
     function _GetIncludeSubfolders: Boolean;
@@ -59,15 +58,6 @@ begin
   finally
     LDialog.Free;
   end;
-end;
-
-procedure TFolderSelectionDialog.FormCreate(Sender: TObject);
-begin
-  Caption := 'Select Folder to Add';
-  Position := poScreenCenter;
-  BorderStyle := bsDialog;
-  Width := 450;
-  Height := 180;
 end;
 
 procedure TFolderSelectionDialog.btnBrowseClick(Sender: TObject);

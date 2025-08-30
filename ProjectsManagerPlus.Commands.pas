@@ -372,23 +372,10 @@ var
   LRemovedCount: Integer;
   LMessage: string;
 begin
-  // TESTE BÁSICO - Este log DEVE aparecer se o método for executado
-  OutputDebugString(PChar('=== BASIC TEST: TRemoveUnitsFromFolderCommand.Execute STARTED ==='));
-  OutputDebugString(PChar('=== BASIC TEST: This message should appear in DebugView ==='));
-
-  // Teste simples para verificar se OutputDebugString funciona
-  try
-    OutputDebugString(PChar('=== BASIC TEST: OutputDebugString is working ==='));
-  except
-    // Se OutputDebugString falhar, mostrar MessageBox
-    MessageDlg('OutputDebugString failed!', mtError, [mbOK], 0);
-  end;
-  
   OutputDebugString(PChar('*** TRemoveUnitsFromFolderCommand.Execute CALLED ***'));
   OutputDebugString(PChar('FProject assigned: ' + BoolToStr(Assigned(FProject), True)));
   OutputDebugString(PChar('FSelectedPath: "' + FSelectedPath + '"'));
   OutputDebugString(PChar('FProjectPath: "' + FProjectPath + '"'));
-  
   try
     LFolderPath := _GetSelectedFolderPath;
     

@@ -2,9 +2,9 @@ object FolderSelectionDialog: TFolderSelectionDialog
   Left = 0
   Top = 0
   BorderStyle = bsDialog
-  Caption = 'Select Folder'
-  ClientHeight = 150
-  ClientWidth = 450
+  Caption = 'Select Folder to Add'
+  ClientHeight = 148
+  ClientWidth = 452
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
