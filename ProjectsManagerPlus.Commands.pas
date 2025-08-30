@@ -13,7 +13,8 @@ uses
   Winapi.Windows,
   ProjectsManagerPlus.Types,
   ProjectsManagerPlus.Services,
-  ProjectsManagerPlus.FolderDialog;
+  ProjectsManagerPlus.FolderDialog,
+  ProjectsManagerPlus.DebugLogHelper;
 
 type
   /// <summary>
@@ -88,42 +89,42 @@ end;
 
 function TBaseProjectCommand._GetSelectedFolderPath: string;
 begin
-  OutputDebugString(PChar('_GetSelectedFolderPath: Starting'));
-  OutputDebugString(PChar('_GetSelectedFolderPath: FSelectedPath = "' + FSelectedPath + '"'));
-  OutputDebugString(PChar('_GetSelectedFolderPath: FProjectPath = "' + FProjectPath + '"'));
-  
+  TDebugLog.Log('_GetSelectedFolderPath: Starting');
+  TDebugLog.Log('_GetSelectedFolderPath: FSelectedPath = "' + FSelectedPath + '"');
+  TDebugLog.Log('_GetSelectedFolderPath: FProjectPath = "' + FProjectPath + '"');
+
   Result := FProjectPath;
   if FSelectedPath <> '' then
   begin
     // Check if FSelectedPath is already an absolute path
     if TPath.IsPathRooted(FSelectedPath) then
     begin
-      OutputDebugString(PChar('_GetSelectedFolderPath: FSelectedPath is absolute path'));
+      TDebugLog.Log('_GetSelectedFolderPath: FSelectedPath is absolute path');
       if TFile.Exists(FSelectedPath) then
       begin
         Result := ExtractFilePath(FSelectedPath);
-        OutputDebugString(PChar('_GetSelectedFolderPath: FSelectedPath is file, using directory: "' + Result + '"'));
+        TDebugLog.Log('_GetSelectedFolderPath: FSelectedPath is file, using directory: "' + Result + '"');
       end
       else if TDirectory.Exists(FSelectedPath) then
       begin
         Result := FSelectedPath;
-        OutputDebugString(PChar('_GetSelectedFolderPath: FSelectedPath is directory: "' + Result + '"'));
+        TDebugLog.Log('_GetSelectedFolderPath: FSelectedPath is directory: "' + Result + '"');
       end
       else
       begin
-        OutputDebugString(PChar('_GetSelectedFolderPath: FSelectedPath does not exist, using as-is: "' + FSelectedPath + '"'));
+        TDebugLog.Log('_GetSelectedFolderPath: FSelectedPath does not exist, using as-is: "' + FSelectedPath + '"');
         Result := FSelectedPath;
       end;
     end
     else
     begin
-      OutputDebugString(PChar('_GetSelectedFolderPath: FSelectedPath is relative, combining with project path'));
+      TDebugLog.Log('_GetSelectedFolderPath: FSelectedPath is relative, combining with project path');
       Result := TPath.Combine(FProjectPath, FSelectedPath);
-      OutputDebugString(PChar('_GetSelectedFolderPath: Combined result: "' + Result + '"'));
+      TDebugLog.Log('_GetSelectedFolderPath: Combined result: "' + Result + '"');
     end;
   end;
-  
-  OutputDebugString(PChar('_GetSelectedFolderPath: Final result = "' + Result + '"'));
+
+  TDebugLog.Log('_GetSelectedFolderPath: Final result = "' + Result + '"');
 end;
 
 function TBaseProjectCommand._ShowInputDialog(const APrompt, ADefault: string): string;
@@ -136,17 +137,17 @@ procedure TBaseProjectCommand._AddFileToProject(const AFileName: string);
 var
   LModuleServices: IOTAModuleServices;
 begin
-  OutputDebugString(PChar('AddFileToProject: Attempting to add file: ' + AFileName));
+  TDebugLog.Log('AddFileToProject: Attempting to add file: ' + AFileName);
 
   if not Assigned(FProject) then
   begin
-    OutputDebugString('AddFileToProject: FProject is nil');
+    TDebugLog.Log('AddFileToProject: FProject is nil');
     Exit;
   end;
 
   if not TFile.Exists(AFileName) then
   begin
-    OutputDebugString(PChar('AddFileToProject: File does not exist: ' + AFileName));
+    TDebugLog.Log('AddFileToProject: File does not exist: ' + AFileName);
     Exit;
   end;
 
@@ -155,13 +156,13 @@ begin
     if Assigned(LModuleServices) then
     begin
       FProject.AddFile(AFileName, True);
-      OutputDebugString(PChar('AddFileToProject: Successfully added file: ' + AFileName));
+      TDebugLog.Log('AddFileToProject: Successfully added file: ' + AFileName);
     end
     else
-      OutputDebugString('AddFileToProject: LModuleServices is nil');
+      TDebugLog.Log('AddFileToProject: LModuleServices is nil');
   except
     on E: Exception do
-      OutputDebugString(PChar('AddFileToProject: Exception: ' + E.Message));
+      TDebugLog.Log('AddFileToProject: Exception: ' + E.Message);
   end;
 end;
 
@@ -256,8 +257,8 @@ var
   LCount: Integer;
   LSearchOption: TSearchOption;
 begin
-  OutputDebugString(PChar('AddUnitsFromFolder: Starting with folder: ' + AFolderPath));
-  OutputDebugString(PChar('AddUnitsFromFolder: Include subfolders: ' + BoolToStr(AIncludeSubfolders, True)));
+  TDebugLog.Log('AddUnitsFromFolder: Starting with folder: ' + AFolderPath);
+  TDebugLog.Log('AddUnitsFromFolder: Include subfolders: ' + BoolToStr(AIncludeSubfolders, True));
 
   LCount := 0;
 
@@ -268,36 +269,36 @@ begin
 
   try
     LFiles := TDirectory.GetFiles(AFolderPath, '*.pas', LSearchOption);
-    OutputDebugString(PChar('AddUnitsFromFolder: Found ' + IntToStr(Length(LFiles)) + ' .pas files'));
+    TDebugLog.Log('AddUnitsFromFolder: Found ' + IntToStr(Length(LFiles)) + ' .pas files');
 
     for LFile in LFiles do
     begin
-      OutputDebugString(PChar('AddUnitsFromFolder: Processing file: ' + LFile));
+      TDebugLog.Log('AddUnitsFromFolder: Processing file: ' + LFile);
 
       if Assigned(FProject) and (FProject.FindModuleInfo(LFile) = nil) then
       begin
-        OutputDebugString(PChar('AddUnitsFromFolder: File not in project, adding: ' + LFile));
+        TDebugLog.Log('AddUnitsFromFolder: File not in project, adding: ' + LFile);
         _AddFileToProject(LFile);
         Inc(LCount);
       end
       else
       begin
         if not Assigned(FProject) then
-          OutputDebugString('AddUnitsFromFolder: FProject is nil')
+          TDebugLog.Log('AddUnitsFromFolder: FProject is nil')
         else
-          OutputDebugString(PChar('AddUnitsFromFolder: File already in project: ' + LFile));
+          TDebugLog.Log('AddUnitsFromFolder: File already in project: ' + LFile);
       end;
     end;
   except
     on E: Exception do
     begin
-      OutputDebugString(PChar('AddUnitsFromFolder: Exception: ' + E.Message));
+      TDebugLog.Log('AddUnitsFromFolder: Exception: ' + E.Message, TLogLevel.llError);
       MessageDlg('Error processing folder: ' + E.Message, mtError, [mbOK], 0);
       Exit;
     end;
   end;
 
-  OutputDebugString(PChar('AddUnitsFromFolder: Added ' + IntToStr(LCount) + ' files'));
+  TDebugLog.Log('AddUnitsFromFolder: Added ' + IntToStr(LCount) + ' files');
 
   if LCount > 0 then
     MessageDlg(Format('Added %d units to project from folder: %s', [LCount, AFolderPath]), mtInformation, [mbOK], 0)
@@ -372,15 +373,15 @@ var
   LRemovedCount: Integer;
   LMessage: string;
 begin
-  OutputDebugString(PChar('*** TRemoveUnitsFromFolderCommand.Execute CALLED ***'));
-  OutputDebugString(PChar('FProject assigned: ' + BoolToStr(Assigned(FProject), True)));
-  OutputDebugString(PChar('FSelectedPath: "' + FSelectedPath + '"'));
-  OutputDebugString(PChar('FProjectPath: "' + FProjectPath + '"'));
+  TDebugLog.Log('*** TRemoveUnitsFromFolderCommand.Execute CALLED ***');
+  TDebugLog.Log('FProject assigned: ' + BoolToStr(Assigned(FProject), True));
+  TDebugLog.Log('FSelectedPath: "' + FSelectedPath + '"');
+  TDebugLog.Log('FProjectPath: "' + FProjectPath + '"');
   try
     LFolderPath := _GetSelectedFolderPath;
-    
-    OutputDebugString(PChar('=== SIMPLE REMOVE UNITS STARTING ==='));
-    OutputDebugString(PChar('Selected folder: "' + LFolderPath + '"'));
+
+    TDebugLog.Log('=== SIMPLE REMOVE UNITS STARTING ===');
+    TDebugLog.Log('Selected folder: "' + LFolderPath + '"');
 
     if not TDirectory.Exists(LFolderPath) then
     begin
@@ -410,7 +411,10 @@ begin
     end;
   except
     on E: Exception do
+    begin
+      TDebugLog.Log('Error removing units: ' + E.Message, TLogLevel.llError);
       MessageDlg('Error removing units: ' + E.Message, mtError, [mbOK], 0);
+    end;
   end;
 end;
 
@@ -507,7 +511,7 @@ begin
 
           if LNormalizedFile.StartsWith(LNormalizedSelected) then
           begin
-            OutputDebugString(PChar('[DEBUG] REMOVING: ' + LFileName));
+            TDebugLog.Log('[DEBUG] REMOVING: ' + LFileName, TLogLevel.llDebug);
             FProject.RemoveFile(LFileName);
             Inc(Result);
           end;
@@ -515,7 +519,7 @@ begin
       end;
     except
       on E: Exception do
-        OutputDebugString(PChar('[ERROR] Remove failed: ' + E.Message));
+        TDebugLog.Log('[ERROR] Remove failed: ' + E.Message, TLogLevel.llError);
     end;
   end;
 end;
@@ -526,4 +530,6 @@ begin
 end;
 
 end.
+
+
 

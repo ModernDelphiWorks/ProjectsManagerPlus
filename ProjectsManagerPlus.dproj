@@ -109,6 +109,7 @@
         <DCCReference Include="ProjectsManagerPlus.Menu.pas"/>
         <DCCReference Include="ProjectsManagerPlus.FolderDialog.pas"/>
         <DCCReference Include="ProjectsManagerPlus.Register.pas"/>
+        <DCCReference Include="ProjectsManagerPlus.DebugLogHelper.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

@@ -38,6 +38,7 @@ contains
   ProjectsManagerPlus.Commands in 'ProjectsManagerPlus.Commands.pas',
   ProjectsManagerPlus.Menu in 'ProjectsManagerPlus.Menu.pas',
   ProjectsManagerPlus.FolderDialog in 'ProjectsManagerPlus.FolderDialog.pas',
-  ProjectsManagerPlus.Register in 'ProjectsManagerPlus.Register.pas';
+  ProjectsManagerPlus.Register in 'ProjectsManagerPlus.Register.pas',
+  ProjectsManagerPlus.DebugLogHelper in 'ProjectsManagerPlus.DebugLogHelper.pas';
 
 end.

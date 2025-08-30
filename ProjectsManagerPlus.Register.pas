@@ -12,7 +12,8 @@ uses
   Vcl.Dialogs,
   ProjectsManagerPlus.Menu,
   ProjectsManagerPlus.Commands,
-  ProjectsManagerPlus.Types;
+  ProjectsManagerPlus.Types,
+  ProjectsManagerPlus.DebugLogHelper;
 
 type
   TProjectPlusMenuNotifier = class(TNotifierObject, IOTAProjectMenuItemCreatorNotifier)
@@ -23,7 +24,6 @@ type
     function CanHandle(const Ident: string): Boolean;
   end;
 
-  // Menu item class for Delphi 2010+
   TProjectPlusMenuItem = class(TNotifierObject, IOTALocalMenu, IOTAProjectManagerMenu)
   private
     FCaption: string;
@@ -82,12 +82,12 @@ procedure TProjectPlusMenuNotifier.AddMenu(const Project: IOTAProject;
 var
   LFor: Integer;
 begin
-  OutputDebugString(PChar('TProjectPlusMenuNotifier.AddMenu called'));
+  TDebugLog.Log('TProjectPlusMenuNotifier.AddMenu called');
 
   if not Assigned(IdentList) or (IdentList.Count = 0) then
     Exit;
 
-  OutputDebugString(PChar('ProjectsManagerPlus: AddMenu - IdentList.Count: ' + IntToStr(IdentList.Count)));
+  TDebugLog.Log('ProjectsManagerPlus: AddMenu - IdentList.Count: ' + IntToStr(IdentList.Count));
 
   for LFor := 0 to IdentList.Count - 1 do
   begin
@@ -95,7 +95,7 @@ begin
     begin
       ProjectManagerMenuList.Add(TProjectPlusMenuItem.Create(
         'Add Folder...', 'AddFolder', 'AddFolders', '', High(Integer), Project));
-      OutputDebugString(PChar('ProjectsManagerPlus: Menu Add Folder criado para projeto'));
+      TDebugLog.Log('ProjectsManagerPlus: Menu Add Folder criado para projeto');
     end
     else if CDirectoryContainer = IdentList[LFor] then
     begin
@@ -107,18 +107,18 @@ begin
         'Add Folder...', 'AddFolder', 'AddFolders', '', 102, Project));
       ProjectManagerMenuList.Add(TProjectPlusMenuItem.Create(
         'Remove Folder', 'RemoveFolder', 'RemoveUnitsFromFolder', '', 103, Project));
-      OutputDebugString(PChar('ProjectsManagerPlus: Menus criados para pasta'));
+      TDebugLog.Log('ProjectsManagerPlus: Menus criados para pasta');
     end;
   end;
 end;
 
 function TProjectPlusMenuNotifier.CanHandle(const Ident: string): Boolean;
 begin
-  OutputDebugString(PChar('TProjectPlusMenuNotifier.CanHandle called with Ident: ' + Ident));
+  TDebugLog.Log('TProjectPlusMenuNotifier.CanHandle called with Ident: ' + Ident);
 
   Result := (Ident = CProjectContainer) or (Ident = CDirectoryContainer);
 
-  OutputDebugString(PChar('CanHandle result: ' + BoolToStr(Result, True) + ' for Ident: ' + Ident));
+  TDebugLog.Log('CanHandle result: ' + BoolToStr(Result, True) + ' for Ident: ' + Ident);
 end;
 
 { TProjectPlusMenuItem }
@@ -238,7 +238,7 @@ var
   LProjectIndex: Integer;
   LCurrentProject: IOTAProject;
 begin
-  OutputDebugString(PChar('TProjectPlusMenuItem.Execute called with verb: ' + FVerb));
+  TDebugLog.Log('TProjectPlusMenuItem.Execute called with verb: ' + FVerb);
 
   try
     // Get menu context
@@ -258,7 +258,7 @@ begin
       end;
     end;
 
-    OutputDebugString(PChar('Selected path: ' + LSelectedPath));
+    TDebugLog.Log('Selected path: ' + LSelectedPath);
 
     // Find the correct project that contains the selected path
     if (LSelectedPath <> '') and Assigned(BorlandIDEServices) then
@@ -272,14 +272,14 @@ begin
           if Assigned(LCurrentProject) then
           begin
             LProjectPath := ExtractFilePath(LCurrentProject.FileName);
-            OutputDebugString(PChar('Checking project: ' + LCurrentProject.FileName));
-            OutputDebugString(PChar('Project path: ' + LProjectPath));
+            TDebugLog.Log('Checking project: ' + LCurrentProject.FileName);
+            TDebugLog.Log('Project path: ' + LProjectPath);
 
             // Check if selected path starts with this project's path
             if (LProjectPath <> '') and (Pos(UpperCase(LProjectPath), UpperCase(LSelectedPath)) = 1) then
             begin
               LCorrectProject := LCurrentProject;
-              OutputDebugString(PChar('Found correct project: ' + LCurrentProject.FileName));
+              TDebugLog.Log('Found correct project: ' + LCurrentProject.FileName);
               Break;
             end;
           end;
@@ -294,17 +294,17 @@ begin
       if Assigned(FProject) then
       begin
         LProjectPath := ExtractFilePath(FProject.FileName);
-        OutputDebugString(PChar('Using fallback project: ' + FProject.FileName));
+        TDebugLog.Log('Using fallback project: ' + FProject.FileName);
       end;
     end;
 
-    OutputDebugString(PChar('Final selected path: ' + LSelectedPath));
-    OutputDebugString(PChar('Final project path: ' + LProjectPath));
+    TDebugLog.Log('Final selected path: ' + LSelectedPath);
+    TDebugLog.Log('Final project path: ' + LProjectPath);
 
     // Handle parent menu - no action needed, just display submenu
     if FVerb = 'AddMenu' then
     begin
-      OutputDebugString(PChar('Parent Add menu clicked - showing submenu'));
+      TDebugLog.Log('Parent Add menu clicked - showing submenu');
       Exit;
     end;
 
@@ -313,25 +313,25 @@ begin
       0: // NewUnit
       begin
         LCommand := TNewUnitCommand.Create(LCorrectProject, LSelectedPath, LProjectPath);
-        OutputDebugString(PChar('Created TNewUnitCommand'));
+        TDebugLog.Log('Created TNewUnitCommand');
       end;
       1: // NewFolder
       begin
         LCommand := TNewFolderCommand.Create(LCorrectProject, LSelectedPath, LProjectPath);
-        OutputDebugString(PChar('Created TNewFolderCommand'));
+        TDebugLog.Log('Created TNewFolderCommand');
       end;
       2: // AddFolders
       begin
         LCommand := TAddFoldersCommand.Create(LCorrectProject, LSelectedPath, LProjectPath);
-        OutputDebugString(PChar('Created TAddFoldersCommand'));
+        TDebugLog.Log('Created TAddFoldersCommand');
       end;
       3: // RemoveUnitsFromFolder
       begin
         LCommand := TRemoveUnitsFromFolderCommand.Create(LCorrectProject, LSelectedPath, LProjectPath);
-        OutputDebugString(PChar('Created TRemoveUnitsFromFolderCommand with correct project'));
+        TDebugLog.Log('Created TRemoveUnitsFromFolderCommand with correct project');
       end;
     else
-      OutputDebugString(PChar('Unknown verb: ' + FVerb));
+      TDebugLog.Log('Unknown verb: ' + FVerb);
       MessageDlg('Unknown command: ' + FVerb, mtError, [mbOK], 0);
       Exit;
     end;
@@ -339,14 +339,14 @@ begin
     // Execute command
     if Assigned(LCommand) then
     begin
-      OutputDebugString(PChar('Executing command: ' + LCommand.GetName));
+      TDebugLog.Log('Executing command: ' + LCommand.GetName);
       LCommand.Execute;
     end;
 
   except
     on E: Exception do
     begin
-      OutputDebugString(PChar('Error in Execute: ' + E.Message));
+      TDebugLog.Log('Error in Execute: ' + E.Message);
       MessageDlg('Error executing command: ' + E.Message, mtError, [mbOK], 0);
     end;
   end;
@@ -364,20 +364,20 @@ end;
 
 procedure Register;
 begin
-  OutputDebugString(PChar('ProjectsManagerPlus: Register procedure called'));
+  TDebugLog.Log('ProjectsManagerPlus: Register procedure called');
 
   if not Assigned(BorlandIDEServices) then
   begin
-    OutputDebugString(PChar('ProjectsManagerPlus: BorlandIDEServices is not assigned'));
+    TDebugLog.Log('ProjectsManagerPlus: BorlandIDEServices is not assigned');
     Exit;
   end;
 
-  OutputDebugString(PChar('ProjectsManagerPlus: BorlandIDEServices is assigned'));
+  TDebugLog.Log('ProjectsManagerPlus: BorlandIDEServices is assigned');
 
   // Avoid double registration
   if Assigned(GMenuNotifier) then
   begin
-    OutputDebugString(PChar('ProjectsManagerPlus: MenuNotifier already exists, skipping registration'));
+    TDebugLog.Log('ProjectsManagerPlus: MenuNotifier already exists, skipping registration');
     Exit;
   end;
 
@@ -385,39 +385,39 @@ begin
 
   try
     GNotifierIndex := (BorlandIDEServices as IOTAProjectManager).AddMenuItemCreatorNotifier(GMenuNotifier);
-    OutputDebugString(PChar('ProjectsManagerPlus: Menu item creator notifier added (Delphi 2010+) - Index: ' + IntToStr(GNotifierIndex)));
+    TDebugLog.Log('ProjectsManagerPlus: Menu item creator notifier added (Delphi 2010+) - Index: ' + IntToStr(GNotifierIndex));
   except
     on E: Exception do
     begin
-      OutputDebugString(PChar('ProjectsManagerPlus: Error adding menu item creator notifier: ' + E.Message));
+      TDebugLog.Log('ProjectsManagerPlus: Error adding menu item creator notifier: ' + E.Message);
       FreeAndNil(GMenuNotifier);
     end;
   end;
 
   if GNotifierIndex >= 0 then
-    OutputDebugString(PChar('ProjectsManagerPlus: Registration completed successfully'))
+    TDebugLog.Log('ProjectsManagerPlus: Registration completed successfully')
   else
-    OutputDebugString(PChar('ProjectsManagerPlus: Registration failed - invalid notifier index'));
+    TDebugLog.Log('ProjectsManagerPlus: Registration failed - invalid notifier index');
 end;
 
 procedure Finalize;
 begin
-  OutputDebugString(PChar('ProjectsManagerPlus: Finalize procedure called'));
+  TDebugLog.Log('ProjectsManagerPlus: Finalize procedure called');
 
   if Assigned(GMenuNotifier) and (GNotifierIndex >= 0) then
   begin
     try
       (BorlandIDEServices as IOTAProjectManager).RemoveMenuItemCreatorNotifier(GNotifierIndex);
-      OutputDebugString(PChar('ProjectsManagerPlus: Menu item creator notifier removed (Delphi 2010+)'));
+      TDebugLog.Log('ProjectsManagerPlus: Menu item creator notifier removed (Delphi 2010+)');
     except
       on E: Exception do
-        OutputDebugString(PChar('ProjectsManagerPlus: Error removing notifier: ' + E.Message));
+        TDebugLog.Log('ProjectsManagerPlus: Error removing notifier: ' + E.Message);
     end;
     GMenuNotifier := nil;
     GNotifierIndex := -1;
   end;
 
-  OutputDebugString(PChar('ProjectsManagerPlus: Finalization completed'));
+  TDebugLog.Log('ProjectsManagerPlus: Finalization completed');
 end;
 
 initialization
@@ -427,4 +427,6 @@ finalization
   Finalize;
 
 end.
+
+
 

@@ -11,7 +11,8 @@ uses
   Vcl.Controls,
   Winapi.Windows,
   ProjectsManagerPlus.Commands,
-  ProjectsManagerPlus.Types;
+  ProjectsManagerPlus.Types,
+  ProjectsManagerPlus.DebugLogHelper;
 
 type
   TProjectPlusMenu = class(TNotifierObject, IOTAProjectManagerMenu)
@@ -202,39 +203,39 @@ var
   LSelectedPath: string;
   LProjectPath: string;
 begin
-  OutputDebugString(PChar('ProjectsManagerPlus: Execute called for MenuType: ' + FMenuType));
-  
+  TDebugLog.Log('ProjectsManagerPlus: Execute called for MenuType: ' + FMenuType);
+
   // Get menu context - use project path as default
   LSelectedPath := '';
   if Assigned(FProject) then
     LProjectPath := ExtractFilePath(FProject.FileName)
   else
     LProjectPath := GetCurrentDir;
-  
-  OutputDebugString(PChar('ProjectsManagerPlus: ProjectPath: ' + LProjectPath));
-  
+
+  TDebugLog.Log('ProjectsManagerPlus: ProjectPath: ' + LProjectPath);
+
   // Execute command based on menu type
   if FMenuType = 'NewUnit' then
   begin
-    OutputDebugString('ProjectsManagerPlus: Creating NewUnitCommand');
+    TDebugLog.Log('ProjectsManagerPlus: Creating NewUnitCommand');
     LCmd := TNewUnitCommand.Create(FProject, LSelectedPath, LProjectPath);
     LCmd.Execute;
   end
   else if FMenuType = 'NewFolder' then
   begin
-    OutputDebugString('ProjectsManagerPlus: Creating NewFolderCommand');
+    TDebugLog.Log('ProjectsManagerPlus: Creating NewFolderCommand');
     LCmd := TNewFolderCommand.Create(FProject, LSelectedPath, LProjectPath);
     LCmd.Execute;
   end
   else if FMenuType = 'AddFolders' then
   begin
-    OutputDebugString('ProjectsManagerPlus: Creating AddFoldersCommand');
+    TDebugLog.Log('ProjectsManagerPlus: Creating AddFoldersCommand');
     LCmd := TAddFoldersCommand.Create(FProject, LSelectedPath, LProjectPath);
     LCmd.Execute;
   end
   else
   begin
-    OutputDebugString(PChar('ProjectsManagerPlus: Unknown MenuType: ' + FMenuType));
+    TDebugLog.Log('ProjectsManagerPlus: Unknown MenuType: ' + FMenuType);
   end;
 end;
 
@@ -249,4 +250,6 @@ begin
 end;
 
 end.
+
+
 
