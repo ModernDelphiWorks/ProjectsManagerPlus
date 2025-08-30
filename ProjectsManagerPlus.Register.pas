@@ -68,11 +68,11 @@ var
   GNotifierIndex: Integer = -1;
 
 const
-  sFileContainer = 'FileContainer';
-  sProjectContainer = 'ProjectContainer';
-  sProjectGroupContainer = 'ProjectGroupContainer';
-  sDirectoryContainer = 'DirectoryContainer';
-  sBaseContainer = 'BaseContainer';
+  CFileContainer = 'FileContainer';
+  CProjectContainer = 'ProjectContainer';
+  CProjectGroupContainer = 'ProjectGroupContainer';
+  CDirectoryContainer = 'DirectoryContainer';
+  CBaseContainer = 'BaseContainer';
 
 { TProjectPlusMenuNotifier }
 
@@ -91,13 +91,13 @@ begin
 
   for LFor := 0 to IdentList.Count - 1 do
   begin
-    if sProjectContainer = IdentList[LFor] then
+    if CProjectContainer = IdentList[LFor] then
     begin
       ProjectManagerMenuList.Add(TProjectPlusMenuItem.Create(
         'Add Folder...', 'AddFolder', 'AddFolders', '', High(Integer), Project));
       OutputDebugString(PChar('ProjectsManagerPlus: Menu Add Folder criado para projeto'));
     end
-    else if sDirectoryContainer = IdentList[LFor] then
+    else if CDirectoryContainer = IdentList[LFor] then
     begin
       ProjectManagerMenuList.Add(TProjectPlusMenuItem.Create(
         'New Unit...', 'NewUnit', 'NewUnit', '', 100, Project));
@@ -116,7 +116,7 @@ function TProjectPlusMenuNotifier.CanHandle(const Ident: string): Boolean;
 begin
   OutputDebugString(PChar('TProjectPlusMenuNotifier.CanHandle called with Ident: ' + Ident));
 
-  Result := (Ident = sProjectContainer) or (Ident = sDirectoryContainer);
+  Result := (Ident = CProjectContainer) or (Ident = CDirectoryContainer);
 
   OutputDebugString(PChar('CanHandle result: ' + BoolToStr(Result, True) + ' for Ident: ' + Ident));
 end;
@@ -416,7 +416,7 @@ begin
     GMenuNotifier := nil;
     GNotifierIndex := -1;
   end;
-  
+
   OutputDebugString(PChar('ProjectsManagerPlus: Finalization completed'));
 end;
 
