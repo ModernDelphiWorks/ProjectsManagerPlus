@@ -185,7 +185,7 @@ var
   LUnitContent: string;
 begin
   try
-    LUnitName := _ShowInputDialog('New unit name:', 'NewUnit');
+    LUnitName := _ShowInputDialog('New unit name:', '');
     if LUnitName = '' then Exit;
 
     // Remove extension if provided
@@ -323,7 +323,7 @@ var
   LUnitContent: string;
 begin
   try
-    LFolderName := _ShowInputDialog('New folder name:', 'NewFolder');
+    LFolderName := _ShowInputDialog('New folder name:', '');
     if LFolderName = '' then Exit;
 
     LTargetPath := _GetSelectedFolderPath;
