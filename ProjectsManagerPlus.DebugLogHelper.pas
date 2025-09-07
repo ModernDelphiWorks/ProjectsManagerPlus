@@ -13,7 +13,7 @@ type
   public
     class var Prefix: string;
     /// <summary>
-    /// Envia mensagem para o DebugView com prefixo padr„o, thread ID e timestamp.
+    /// Envia mensagem para o DebugView com prefixo padr√£o, thread ID e timestamp.
     /// </summary>
     class procedure Log(const AMessage: string; ALevel: TLogLevel = llInfo); static;
     class procedure LogFmt(const ALevel: TLogLevel; const AFormat: string; const AArgs: array of const); static;
