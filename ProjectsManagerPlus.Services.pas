@@ -26,13 +26,16 @@ var
   LFile: TextFile;
 begin
   Result := False;
+  AssignFile(LFile, APath);
   try
-    AssignFile(LFile, APath);
     Rewrite(LFile);
-    if AContent <> '' then
-      Write(LFile, AContent);
-    CloseFile(LFile);
-    Result := True;
+    try
+      if AContent <> '' then
+        Write(LFile, AContent);
+      Result := True;
+    finally
+      CloseFile(LFile);
+    end;
   except
     on E: Exception do
       Result := False;

@@ -205,7 +205,7 @@ var
 begin
   TDebugLog.Log('ProjectsManagerPlus: Execute called for MenuType: ' + FMenuType);
 
-  // Get menu context - use project path as default
+  // Determine project path; menu context currently ignored
   LSelectedPath := '';
   if Assigned(FProject) then
     LProjectPath := ExtractFilePath(FProject.FileName)
