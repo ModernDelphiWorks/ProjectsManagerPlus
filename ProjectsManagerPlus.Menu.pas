@@ -89,18 +89,22 @@ end;
 
 procedure TProjectPlusMenu.AfterSave;
 begin
+
 end;
 
 procedure TProjectPlusMenu.BeforeSave;
 begin
+
 end;
 
 procedure TProjectPlusMenu.Destroyed;
 begin
+
 end;
 
 procedure TProjectPlusMenu.Modified;
 begin
+
 end;
 
 { IOTALocalMenu }
