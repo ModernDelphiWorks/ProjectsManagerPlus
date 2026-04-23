@@ -1,4 +1,4 @@
-﻿unit ProjectsManagerPlus.Commands;
+unit ProjectsManagerPlus.Commands;
 
 interface
 
@@ -88,6 +88,8 @@ begin
 end;
 
 function TBaseProjectCommand._GetSelectedFolderPath: string;
+var
+  LCombinedPath: string;
 begin
   TDebugLog.Log('_GetSelectedFolderPath: Starting');
   TDebugLog.Log('_GetSelectedFolderPath: FSelectedPath = "' + FSelectedPath + '"');
@@ -112,15 +114,27 @@ begin
       end
       else
       begin
-        TDebugLog.Log('_GetSelectedFolderPath: FSelectedPath does not exist, using as-is: "' + FSelectedPath + '"');
-        Result := FSelectedPath;
+        TDebugLog.Log('_GetSelectedFolderPath: FSelectedPath is absolute but does not exist, treating as virtual node. Fallback to ProjectPath');
+        Result := FProjectPath;
       end;
     end
     else
     begin
       TDebugLog.Log('_GetSelectedFolderPath: FSelectedPath is relative, combining with project path');
-      Result := TPath.Combine(FProjectPath, FSelectedPath);
-      TDebugLog.Log('_GetSelectedFolderPath: Combined result: "' + Result + '"');
+      LCombinedPath := TPath.Combine(FProjectPath, FSelectedPath);
+      if TDirectory.Exists(LCombinedPath) or TFile.Exists(LCombinedPath) then
+      begin
+        if TFile.Exists(LCombinedPath) then
+          Result := ExtractFilePath(LCombinedPath)
+        else
+          Result := LCombinedPath;
+        TDebugLog.Log('_GetSelectedFolderPath: Combined result exists: "' + Result + '"');
+      end
+      else
+      begin
+        TDebugLog.Log('_GetSelectedFolderPath: Combined result does not exist, treating as virtual node. Fallback to ProjectPath');
+        Result := FProjectPath;
+      end;
     end;
   end;
 

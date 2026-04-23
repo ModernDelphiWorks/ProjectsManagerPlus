@@ -207,10 +207,9 @@ begin
 
   // Determine project path; menu context currently ignored
   LSelectedPath := '';
+  LProjectPath := '';
   if Assigned(FProject) then
-    LProjectPath := ExtractFilePath(FProject.FileName)
-  else
-    LProjectPath := GetCurrentDir;
+    LProjectPath := ExtractFilePath(FProject.FileName);
 
   TDebugLog.Log('ProjectsManagerPlus: ProjectPath: ' + LProjectPath);
 

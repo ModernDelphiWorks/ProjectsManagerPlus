@@ -1,4 +1,4 @@
-﻿unit ProjectsManagerPlus.Register;
+unit ProjectsManagerPlus.Register;
 
 interface
 
@@ -19,9 +19,9 @@ type
   TProjectPlusMenuNotifier = class(TNotifierObject, IOTAProjectMenuItemCreatorNotifier)
   public
     { IOTAProjectMenuItemCreatorNotifier }
-    procedure AddMenu(const Project: IOTAProject; const IdentList: TStrings;
-      const ProjectManagerMenuList: IInterfaceList; IsMultiSelect: Boolean);
-    function CanHandle(const Ident: string): Boolean;
+    procedure AddMenu(const AProject: IOTAProject; const AIdentList: TStrings;
+      const AProjectManagerMenuList: IInterfaceList; AIsMultiSelect: Boolean);
+    function CanHandle(const AIdent: string): Boolean;
   end;
 
   TProjectPlusMenuItem = class(TNotifierObject, IOTALocalMenu, IOTAProjectManagerMenu)
@@ -32,6 +32,9 @@ type
     FParent: string;
     FPosition: Integer;
     FProject: IOTAProject;
+    function _GetSelectedPath(const AMenuContextList: IInterfaceList): string;
+    function _FindCorrectProject(const ASelectedPath: string; out AProjectPath: string): IOTAProject;
+    function _CreateCommand(const AVerb, ASelectedPath, AProjectPath: string; const AProject: IOTAProject): IProjectPlusCommand;
   public
     constructor Create(const ACaption, AName, AVerb, AParent: string; APosition: Integer; AProject: IOTAProject);
     // IOTALocalMenu methods
@@ -43,20 +46,20 @@ type
     function GetParent: string;
     function GetPosition: Integer;
     function GetVerb: string;
-    procedure SetCaption(const Value: string);
-    procedure SetChecked(Value: Boolean);
-    procedure SetEnabled(Value: Boolean);
-    procedure SetHelpContext(Value: Integer);
-    procedure SetName(const Value: string);
-    procedure SetParent(const Value: string);
-    procedure SetPosition(Value: Integer);
-    procedure SetVerb(const Value: string);
+    procedure SetCaption(const AValue: string);
+    procedure SetChecked(AValue: Boolean);
+    procedure SetEnabled(AValue: Boolean);
+    procedure SetHelpContext(AValue: Integer);
+    procedure SetName(const AValue: string);
+    procedure SetParent(const AValue: string);
+    procedure SetPosition(AValue: Integer);
+    procedure SetVerb(const AValue: string);
     // IOTAProjectManagerMenu methods
     function GetIsMultiSelectable: Boolean;
-    procedure SetIsMultiSelectable(Value: Boolean);
-    procedure Execute(const MenuContextList: IInterfaceList); overload;
-    function PreExecute(const MenuContextList: IInterfaceList): Boolean;
-    function PostExecute(const MenuContextList: IInterfaceList): Boolean;
+    procedure SetIsMultiSelectable(AValue: Boolean);
+    procedure Execute(const AMenuContextList: IInterfaceList); overload;
+    function PreExecute(const AMenuContextList: IInterfaceList): Boolean;
+    function PostExecute(const AMenuContextList: IInterfaceList): Boolean;
   end;
 
 procedure Register;
@@ -76,49 +79,49 @@ const
 
 { TProjectPlusMenuNotifier }
 
-procedure TProjectPlusMenuNotifier.AddMenu(const Project: IOTAProject;
-  const IdentList: TStrings; const ProjectManagerMenuList: IInterfaceList;
-  IsMultiSelect: Boolean);
+procedure TProjectPlusMenuNotifier.AddMenu(const AProject: IOTAProject;
+  const AIdentList: TStrings; const AProjectManagerMenuList: IInterfaceList;
+  AIsMultiSelect: Boolean);
 var
   LFor: Integer;
 begin
   TDebugLog.Log('TProjectPlusMenuNotifier.AddMenu called');
 
-  if not Assigned(IdentList) or (IdentList.Count = 0) then
+  if not Assigned(AIdentList) or (AIdentList.Count = 0) then
     Exit;
 
-  TDebugLog.Log('ProjectsManagerPlus: AddMenu - IdentList.Count: ' + IntToStr(IdentList.Count));
+  TDebugLog.Log('ProjectsManagerPlus: AddMenu - AIdentList.Count: ' + IntToStr(AIdentList.Count));
 
-  for LFor := 0 to IdentList.Count - 1 do
+  for LFor := 0 to AIdentList.Count - 1 do
   begin
-    if CProjectContainer = IdentList[LFor] then
+    if CProjectContainer = AIdentList[LFor] then
     begin
-      ProjectManagerMenuList.Add(TProjectPlusMenuItem.Create(
-        'Add Folder...', 'AddFolder', 'AddFolders', '', High(Integer), Project));
+      AProjectManagerMenuList.Add(TProjectPlusMenuItem.Create(
+        'Add Folder...', 'AddFolder', 'AddFolders', '', High(Integer), AProject));
       TDebugLog.Log('ProjectsManagerPlus: Menu Add Folder criado para projeto');
     end
-    else if CDirectoryContainer = IdentList[LFor] then
+    else if CDirectoryContainer = AIdentList[LFor] then
     begin
-      ProjectManagerMenuList.Add(TProjectPlusMenuItem.Create(
-        'New Unit...', 'NewUnit', 'NewUnit', '', 100, Project));
-      ProjectManagerMenuList.Add(TProjectPlusMenuItem.Create(
-        'New Folder...', 'NewFolder', 'NewFolder', '', 101, Project));
-      ProjectManagerMenuList.Add(TProjectPlusMenuItem.Create(
-        'Add Folder...', 'AddFolder', 'AddFolders', '', 102, Project));
-      ProjectManagerMenuList.Add(TProjectPlusMenuItem.Create(
-        'Remove Folder', 'RemoveFolder', 'RemoveUnitsFromFolder', '', 103, Project));
+      AProjectManagerMenuList.Add(TProjectPlusMenuItem.Create(
+        'New Unit...', 'NewUnit', 'NewUnit', '', 100, AProject));
+      AProjectManagerMenuList.Add(TProjectPlusMenuItem.Create(
+        'New Folder...', 'NewFolder', 'NewFolder', '', 101, AProject));
+      AProjectManagerMenuList.Add(TProjectPlusMenuItem.Create(
+        'Add Folder...', 'AddFolder', 'AddFolders', '', 102, AProject));
+      AProjectManagerMenuList.Add(TProjectPlusMenuItem.Create(
+        'Remove Folder', 'RemoveFolder', 'RemoveUnitsFromFolder', '', 103, AProject));
       TDebugLog.Log('ProjectsManagerPlus: Menus criados para pasta');
     end;
   end;
 end;
 
-function TProjectPlusMenuNotifier.CanHandle(const Ident: string): Boolean;
+function TProjectPlusMenuNotifier.CanHandle(const AIdent: string): Boolean;
 begin
-  TDebugLog.Log('TProjectPlusMenuNotifier.CanHandle called with Ident: ' + Ident);
+  TDebugLog.Log('TProjectPlusMenuNotifier.CanHandle called with Ident: ' + AIdent);
 
-  Result := (Ident = CProjectContainer) or (Ident = CDirectoryContainer);
+  Result := (AIdent = CProjectContainer) or (AIdent = CDirectoryContainer);
 
-  TDebugLog.Log('CanHandle result: ' + BoolToStr(Result, True) + ' for Ident: ' + Ident);
+  TDebugLog.Log('CanHandle result: ' + BoolToStr(Result, True) + ' for Ident: ' + AIdent);
 end;
 
 { TProjectPlusMenuItem }
@@ -175,42 +178,42 @@ begin
   Result := FVerb;
 end;
 
-procedure TProjectPlusMenuItem.SetCaption(const Value: string);
+procedure TProjectPlusMenuItem.SetCaption(const AValue: string);
 begin
   // Do nothing - static menu
 end;
 
-procedure TProjectPlusMenuItem.SetChecked(Value: Boolean);
+procedure TProjectPlusMenuItem.SetChecked(AValue: Boolean);
 begin
   // Do nothing - static menu
 end;
 
-procedure TProjectPlusMenuItem.SetEnabled(Value: Boolean);
+procedure TProjectPlusMenuItem.SetEnabled(AValue: Boolean);
 begin
   // Do nothing - static menu
 end;
 
-procedure TProjectPlusMenuItem.SetHelpContext(Value: Integer);
+procedure TProjectPlusMenuItem.SetHelpContext(AValue: Integer);
 begin
   // Do nothing - static menu
 end;
 
-procedure TProjectPlusMenuItem.SetName(const Value: string);
+procedure TProjectPlusMenuItem.SetName(const AValue: string);
 begin
   // Do nothing - static menu
 end;
 
-procedure TProjectPlusMenuItem.SetParent(const Value: string);
+procedure TProjectPlusMenuItem.SetParent(const AValue: string);
 begin
   // Do nothing - static menu
 end;
 
-procedure TProjectPlusMenuItem.SetPosition(Value: Integer);
+procedure TProjectPlusMenuItem.SetPosition(AValue: Integer);
 begin
-  FPosition := Value;
+  FPosition := AValue;
 end;
 
-procedure TProjectPlusMenuItem.SetVerb(const Value: string);
+procedure TProjectPlusMenuItem.SetVerb(const AValue: string);
 begin
   // Do nothing - static menu
 end;
@@ -221,71 +224,114 @@ begin
   Result := False;
 end;
 
-procedure TProjectPlusMenuItem.SetIsMultiSelectable(Value: Boolean);
+procedure TProjectPlusMenuItem.SetIsMultiSelectable(AValue: Boolean);
 begin
   // Do nothing - static menu
 end;
 
-procedure TProjectPlusMenuItem.Execute(const MenuContextList: IInterfaceList);
+function TProjectPlusMenuItem._GetSelectedPath(const AMenuContextList: IInterfaceList): string;
+var
+  LContext: IOTAProjectMenuContext;
+  LFor: Integer;
+begin
+  Result := '';
+  if not Assigned(AMenuContextList) or (AMenuContextList.Count = 0) then
+    Exit;
+
+  for LFor := 0 to AMenuContextList.Count - 1 do
+  begin
+    if Supports(AMenuContextList[LFor], IOTAProjectMenuContext, LContext) then
+    begin
+      Result := LContext.Ident;
+      Break;
+    end;
+  end;
+end;
+
+function TProjectPlusMenuItem._FindCorrectProject(const ASelectedPath: string; out AProjectPath: string): IOTAProject;
+var
+  LProjectGroup: IOTAProjectGroup;
+  LProjectIndex: Integer;
+  LCurrentProject: IOTAProject;
+  LPath: string;
+begin
+  Result := nil;
+  AProjectPath := '';
+
+  if (ASelectedPath = '') or not Assigned(BorlandIDEServices) then
+    Exit;
+
+  LProjectGroup := (BorlandIDEServices as IOTAModuleServices).MainProjectGroup;
+  if not Assigned(LProjectGroup) then
+    Exit;
+
+  for LProjectIndex := 0 to LProjectGroup.ProjectCount - 1 do
+  begin
+    LCurrentProject := LProjectGroup.Projects[LProjectIndex];
+    if not Assigned(LCurrentProject) then
+      Continue;
+
+    LPath := ExtractFilePath(LCurrentProject.FileName);
+    TDebugLog.Log('Checking project: ' + LCurrentProject.FileName);      
+    TDebugLog.Log('Project path: ' + LPath);
+
+    // Check if selected path starts with this project's path
+    if (LPath <> '') and (Pos(UpperCase(LPath), UpperCase(ASelectedPath)) = 1) then
+    begin
+      Result := LCurrentProject;
+      AProjectPath := LPath;
+      TDebugLog.Log('Found correct project: ' + LCurrentProject.FileName);
+      Break;
+    end;
+  end;
+end;
+
+function TProjectPlusMenuItem._CreateCommand(const AVerb, ASelectedPath, AProjectPath: string; const AProject: IOTAProject): IProjectPlusCommand;
+begin
+  Result := nil;
+  case IndexText(AVerb, ['NewUnit', 'NewFolder', 'AddFolders', 'RemoveUnitsFromFolder']) of
+    0: // NewUnit
+    begin
+      Result := TNewUnitCommand.Create(AProject, ASelectedPath, AProjectPath);
+      TDebugLog.Log('Created TNewUnitCommand');
+    end;
+    1: // NewFolder
+    begin
+      Result := TNewFolderCommand.Create(AProject, ASelectedPath, AProjectPath);
+      TDebugLog.Log('Created TNewFolderCommand');
+    end;
+    2: // AddFolders
+    begin
+      Result := TAddFoldersCommand.Create(AProject, ASelectedPath, AProjectPath);
+      TDebugLog.Log('Created TAddFoldersCommand');
+    end;
+    3: // RemoveUnitsFromFolder
+    begin
+      Result := TRemoveUnitsFromFolderCommand.Create(AProject, ASelectedPath, AProjectPath);
+      TDebugLog.Log('Created TRemoveUnitsFromFolderCommand with correct project');
+    end;
+  else
+  begin
+    TDebugLog.Log('Unknown verb: ' + AVerb);
+    MessageDlg('Unknown command: ' + AVerb, mtError, [mbOK], 0);
+  end;
+  end;
+end;
+
+procedure TProjectPlusMenuItem.Execute(const AMenuContextList: IInterfaceList);
 var
   LCommand: IProjectPlusCommand;
   LSelectedPath: string;
   LProjectPath: string;
-  LContext: IOTAProjectMenuContext;
-  LFor: Integer;
   LCorrectProject: IOTAProject;
-  LProjectGroup: IOTAProjectGroup;
-  LProjectIndex: Integer;
-  LCurrentProject: IOTAProject;
 begin
   TDebugLog.Log('TProjectPlusMenuItem.Execute called with verb: ' + FVerb);
 
   try
-    // Get menu context
-    LSelectedPath := '';
-    LProjectPath := '';
-    LCorrectProject := nil;
-
-    if Assigned(MenuContextList) and (MenuContextList.Count > 0) then
-    begin
-      for LFor := 0 to MenuContextList.Count - 1 do
-      begin
-        if Supports(MenuContextList[LFor], IOTAProjectMenuContext, LContext) then
-        begin
-          LSelectedPath := LContext.Ident;
-          Break;
-        end;
-      end;
-    end;
-
+    LSelectedPath := _GetSelectedPath(AMenuContextList);
     TDebugLog.Log('Selected path: ' + LSelectedPath);
 
-    // Find the correct project that contains the selected path
-    if (LSelectedPath <> '') and Assigned(BorlandIDEServices) then
-    begin
-      LProjectGroup := (BorlandIDEServices as IOTAModuleServices).MainProjectGroup;
-      if Assigned(LProjectGroup) then
-      begin
-        for LProjectIndex := 0 to LProjectGroup.ProjectCount - 1 do
-        begin
-          LCurrentProject := LProjectGroup.Projects[LProjectIndex];
-          if Assigned(LCurrentProject) then
-          begin
-            LProjectPath := ExtractFilePath(LCurrentProject.FileName);
-            TDebugLog.Log('Checking project: ' + LCurrentProject.FileName);
-            TDebugLog.Log('Project path: ' + LProjectPath);
-
-            // Check if selected path starts with this project's path
-            if (LProjectPath <> '') and (Pos(UpperCase(LProjectPath), UpperCase(LSelectedPath)) = 1) then
-            begin
-              LCorrectProject := LCurrentProject;
-              TDebugLog.Log('Found correct project: ' + LCurrentProject.FileName);
-              Break;
-            end;
-          end;
-        end;
-      end;
-    end;
+    LCorrectProject := _FindCorrectProject(LSelectedPath, LProjectPath);
 
     // If no correct project found, use the original FProject as fallback
     if not Assigned(LCorrectProject) then
@@ -309,32 +355,7 @@ begin
     end;
 
     // Create command based on verb
-    case IndexText(FVerb, ['NewUnit', 'NewFolder', 'AddFolders', 'RemoveUnitsFromFolder']) of
-      0: // NewUnit
-      begin
-        LCommand := TNewUnitCommand.Create(LCorrectProject, LSelectedPath, LProjectPath);
-        TDebugLog.Log('Created TNewUnitCommand');
-      end;
-      1: // NewFolder
-      begin
-        LCommand := TNewFolderCommand.Create(LCorrectProject, LSelectedPath, LProjectPath);
-        TDebugLog.Log('Created TNewFolderCommand');
-      end;
-      2: // AddFolders
-      begin
-        LCommand := TAddFoldersCommand.Create(LCorrectProject, LSelectedPath, LProjectPath);
-        TDebugLog.Log('Created TAddFoldersCommand');
-      end;
-      3: // RemoveUnitsFromFolder
-      begin
-        LCommand := TRemoveUnitsFromFolderCommand.Create(LCorrectProject, LSelectedPath, LProjectPath);
-        TDebugLog.Log('Created TRemoveUnitsFromFolderCommand with correct project');
-      end;
-    else
-      TDebugLog.Log('Unknown verb: ' + FVerb);
-      MessageDlg('Unknown command: ' + FVerb, mtError, [mbOK], 0);
-      Exit;
-    end;
+    LCommand := _CreateCommand(FVerb, LSelectedPath, LProjectPath, LCorrectProject);
 
     // Execute command
     if Assigned(LCommand) then
@@ -352,12 +373,12 @@ begin
   end;
 end;
 
-function TProjectPlusMenuItem.PreExecute(const MenuContextList: IInterfaceList): Boolean;
+function TProjectPlusMenuItem.PreExecute(const AMenuContextList: IInterfaceList): Boolean;
 begin
   Result := True;
 end;
 
-function TProjectPlusMenuItem.PostExecute(const MenuContextList: IInterfaceList): Boolean;
+function TProjectPlusMenuItem.PostExecute(const AMenuContextList: IInterfaceList): Boolean;
 begin
   Result := False;
 end;
@@ -401,21 +422,28 @@ begin
 end;
 
 procedure Finalize;
+var
+  LProjectManager: IOTAProjectManager;
 begin
   TDebugLog.Log('ProjectsManagerPlus: Finalize procedure called');
 
-  if Assigned(GMenuNotifier) and (GNotifierIndex >= 0) then
+  if Assigned(BorlandIDEServices) and Assigned(GMenuNotifier) and (GNotifierIndex >= 0) then
   begin
     try
-      (BorlandIDEServices as IOTAProjectManager).RemoveMenuItemCreatorNotifier(GNotifierIndex);
-      TDebugLog.Log('ProjectsManagerPlus: Menu item creator notifier removed (Delphi 2010+)');
+      if Supports(BorlandIDEServices, IOTAProjectManager, LProjectManager) then
+      begin
+        LProjectManager.RemoveMenuItemCreatorNotifier(GNotifierIndex);
+        TDebugLog.Log('ProjectsManagerPlus: Menu item creator notifier removed');
+      end;
     except
       on E: Exception do
         TDebugLog.Log('ProjectsManagerPlus: Error removing notifier: ' + E.Message);
     end;
-    GMenuNotifier := nil;
-    GNotifierIndex := -1;
   end;
+  
+  // Force nullification regardless of exceptions
+  GMenuNotifier := nil;
+  GNotifierIndex := -1;
 
   TDebugLog.Log('ProjectsManagerPlus: Finalization completed');
 end;
