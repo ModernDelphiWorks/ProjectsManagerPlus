@@ -466,11 +466,16 @@ begin
           end;
         end;
       except
-        // Ignora erros e continua
+        on E: Exception do
+          TDebugLog.Log('Error counting units in module ' + IntToStr(LFor) + ': ' + E.Message);
       end;
     end;
   except
-    LFileCount := 0;
+    on E: Exception do
+    begin
+      TDebugLog.Log('Error in TRemoveUnitsFromFolderCommand.Execute: ' + E.Message);
+      LFileCount := 0;
+    end;
   end;
 
   LMessage := Format('Remove all units (.pas files) from the selected folder and ALL its subfolders?'#13#10#13#10 +
