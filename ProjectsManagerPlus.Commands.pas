@@ -3,18 +3,8 @@ unit ProjectsManagerPlus.Commands;
 interface
 
 uses
-  System.Types,
-  System.SysUtils,
-  System.IOUtils,
-  System.Classes,
   ToolsAPI,
-  Vcl.Dialogs,
-  Vcl.Controls,
-  Winapi.Windows,
-  ProjectsManagerPlus.Types,
-  ProjectsManagerPlus.Services,
-  ProjectsManagerPlus.FolderDialog,
-  ProjectsManagerPlus.DebugLogHelper;
+  ProjectsManagerPlus.Types;
 
 type
   /// <summary>
@@ -78,6 +68,16 @@ type
 
 implementation
 
+uses
+  System.Types,
+  System.SysUtils,
+  System.IOUtils,
+  Vcl.Dialogs,
+  Vcl.Controls,
+  ProjectsManagerPlus.Services,
+  ProjectsManagerPlus.FolderDialog,
+  ProjectsManagerPlus.DebugLogHelper;
+
 { TBaseProjectCommand }
 
 constructor TBaseProjectCommand.Create(const AProject: IOTAProject; const ASelectedPath, AProjectPath: string);
@@ -91,54 +91,45 @@ function TBaseProjectCommand._GetSelectedFolderPath: string;
 var
   LCombinedPath: string;
 begin
-  TDebugLog.Log('_GetSelectedFolderPath: Starting');
-  TDebugLog.Log('_GetSelectedFolderPath: FSelectedPath = "' + FSelectedPath + '"');
-  TDebugLog.Log('_GetSelectedFolderPath: FProjectPath = "' + FProjectPath + '"');
-
+  TDebugLog.Log('_GetSelectedFolderPath: Starting with Selected="' + FSelectedPath +
+    '", Project="' + FProjectPath + '"');
   Result := FProjectPath;
-  if FSelectedPath <> '' then
+
+  if FSelectedPath = '' then
+    Exit;
+
+  if TPath.IsPathRooted(FSelectedPath) then
   begin
-    // Check if FSelectedPath is already an absolute path
-    if TPath.IsPathRooted(FSelectedPath) then
+    if TFile.Exists(FSelectedPath) then
     begin
-      TDebugLog.Log('_GetSelectedFolderPath: FSelectedPath is absolute path');
-      if TFile.Exists(FSelectedPath) then
-      begin
-        Result := ExtractFilePath(FSelectedPath);
-        TDebugLog.Log('_GetSelectedFolderPath: FSelectedPath is file, using directory: "' + Result + '"');
-      end
-      else if TDirectory.Exists(FSelectedPath) then
-      begin
-        Result := FSelectedPath;
-        TDebugLog.Log('_GetSelectedFolderPath: FSelectedPath is directory: "' + Result + '"');
-      end
-      else
-      begin
-        TDebugLog.Log('_GetSelectedFolderPath: FSelectedPath is absolute but does not exist, treating as virtual node. Fallback to ProjectPath');
-        Result := FProjectPath;
-      end;
-    end
-    else
-    begin
-      TDebugLog.Log('_GetSelectedFolderPath: FSelectedPath is relative, combining with project path');
-      LCombinedPath := TPath.Combine(FProjectPath, FSelectedPath);
-      if TDirectory.Exists(LCombinedPath) or TFile.Exists(LCombinedPath) then
-      begin
-        if TFile.Exists(LCombinedPath) then
-          Result := ExtractFilePath(LCombinedPath)
-        else
-          Result := LCombinedPath;
-        TDebugLog.Log('_GetSelectedFolderPath: Combined result exists: "' + Result + '"');
-      end
-      else
-      begin
-        TDebugLog.Log('_GetSelectedFolderPath: Combined result does not exist, treating as virtual node. Fallback to ProjectPath');
-        Result := FProjectPath;
-      end;
+      Result := ExtractFilePath(FSelectedPath);
+      Exit;
     end;
+
+    if TDirectory.Exists(FSelectedPath) then
+    begin
+      Result := FSelectedPath;
+      Exit;
+    end;
+
+    TDebugLog.Log('_GetSelectedFolderPath: Virtual node fallback to ProjectPath');
+    Exit;
   end;
 
-  TDebugLog.Log('_GetSelectedFolderPath: Final result = "' + Result + '"');
+  LCombinedPath := TPath.Combine(FProjectPath, FSelectedPath);
+  if TFile.Exists(LCombinedPath) then
+  begin
+    Result := ExtractFilePath(LCombinedPath);
+    Exit;
+  end;
+
+  if TDirectory.Exists(LCombinedPath) then
+  begin
+    Result := LCombinedPath;
+    Exit;
+  end;
+
+  TDebugLog.Log('_GetSelectedFolderPath: Combined not found, fallback to ProjectPath');
 end;
 
 function TBaseProjectCommand._ShowInputDialog(const APrompt, ADefault: string): string;

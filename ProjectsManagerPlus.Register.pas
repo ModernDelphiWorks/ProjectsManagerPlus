@@ -4,16 +4,8 @@ interface
 
 uses
   ToolsAPI,
-  Winapi.Windows,
   System.Classes,
-  System.SysUtils,
-  System.StrUtils,
-  Vcl.Menus,
-  Vcl.Dialogs,
-  ProjectsManagerPlus.Menu,
-  ProjectsManagerPlus.Commands,
-  ProjectsManagerPlus.Types,
-  ProjectsManagerPlus.DebugLogHelper;
+  ProjectsManagerPlus.Types;
 
 type
   TProjectPlusMenuNotifier = class(TNotifierObject, IOTAProjectMenuItemCreatorNotifier)
@@ -21,7 +13,6 @@ type
     { IOTAProjectMenuItemCreatorNotifier }
     procedure AddMenu(const AProject: IOTAProject; const AIdentList: TStrings;
       const AProjectManagerMenuList: IInterfaceList; AIsMultiSelect: Boolean);
-    function CanHandle(const AIdent: string): Boolean;
   end;
 
   TProjectPlusMenuItem = class(TNotifierObject, IOTALocalMenu, IOTAProjectManagerMenu)
@@ -34,7 +25,8 @@ type
     FProject: IOTAProject;
     function _GetSelectedPath(const AMenuContextList: IInterfaceList): string;
     function _FindCorrectProject(const ASelectedPath: string; out AProjectPath: string): IOTAProject;
-    function _CreateCommand(const AVerb, ASelectedPath, AProjectPath: string; const AProject: IOTAProject): IProjectPlusCommand;
+    function _CreateCommand(const AVerb, ASelectedPath, AProjectPath: string;
+      const AProject: IOTAProject): IProjectPlusCommand;
   public
     constructor Create(const ACaption, AName, AVerb, AParent: string; APosition: Integer; AProject: IOTAProject);
     // IOTALocalMenu methods
@@ -66,16 +58,20 @@ procedure Register;
 
 implementation
 
+uses
+  System.SysUtils,
+  System.StrUtils,
+  Vcl.Dialogs,
+  ProjectsManagerPlus.Commands,
+  ProjectsManagerPlus.DebugLogHelper;
+
 var
   GMenuNotifier: IOTAProjectMenuItemCreatorNotifier;
   GNotifierIndex: Integer = -1;
 
 const
-  CFileContainer = 'FileContainer';
   CProjectContainer = 'ProjectContainer';
-  CProjectGroupContainer = 'ProjectGroupContainer';
   CDirectoryContainer = 'DirectoryContainer';
-  CBaseContainer = 'BaseContainer';
 
 { TProjectPlusMenuNotifier }
 
@@ -115,18 +111,10 @@ begin
   end;
 end;
 
-function TProjectPlusMenuNotifier.CanHandle(const AIdent: string): Boolean;
-begin
-  TDebugLog.Log('TProjectPlusMenuNotifier.CanHandle called with Ident: ' + AIdent);
-
-  Result := (AIdent = CProjectContainer) or (AIdent = CDirectoryContainer);
-
-  TDebugLog.Log('CanHandle result: ' + BoolToStr(Result, True) + ' for Ident: ' + AIdent);
-end;
-
 { TProjectPlusMenuItem }
 
-constructor TProjectPlusMenuItem.Create(const ACaption, AName, AVerb, AParent: string; APosition: Integer; AProject: IOTAProject);
+constructor TProjectPlusMenuItem.Create(const ACaption, AName, AVerb, AParent: string;
+  APosition: Integer; AProject: IOTAProject);
 begin
   inherited Create;
   FCaption := ACaption;
@@ -272,7 +260,7 @@ begin
       Continue;
 
     LPath := ExtractFilePath(LCurrentProject.FileName);
-    TDebugLog.Log('Checking project: ' + LCurrentProject.FileName);      
+    TDebugLog.Log('Checking project: ' + LCurrentProject.FileName);
     TDebugLog.Log('Project path: ' + LPath);
 
     // Check if selected path starts with this project's path
@@ -286,7 +274,8 @@ begin
   end;
 end;
 
-function TProjectPlusMenuItem._CreateCommand(const AVerb, ASelectedPath, AProjectPath: string; const AProject: IOTAProject): IProjectPlusCommand;
+function TProjectPlusMenuItem._CreateCommand(const AVerb, ASelectedPath, AProjectPath: string;
+  const AProject: IOTAProject): IProjectPlusCommand;
 begin
   Result := nil;
   case IndexText(AVerb, ['NewUnit', 'NewFolder', 'AddFolders', 'RemoveUnitsFromFolder']) of
@@ -406,7 +395,8 @@ begin
 
   try
     GNotifierIndex := (BorlandIDEServices as IOTAProjectManager).AddMenuItemCreatorNotifier(GMenuNotifier);
-    TDebugLog.Log('ProjectsManagerPlus: Menu item creator notifier added (Delphi 2010+) - Index: ' + IntToStr(GNotifierIndex));
+    TDebugLog.Log('ProjectsManagerPlus: Menu item creator notifier added (Delphi 2010+) - Index: ' +
+      IntToStr(GNotifierIndex));
   except
     on E: Exception do
     begin
@@ -440,7 +430,7 @@ begin
         TDebugLog.Log('ProjectsManagerPlus: Error removing notifier: ' + E.Message);
     end;
   end;
-  
+
   // Force nullification regardless of exceptions
   GMenuNotifier := nil;
   GNotifierIndex := -1;
