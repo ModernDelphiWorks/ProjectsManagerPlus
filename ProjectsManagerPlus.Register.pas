@@ -67,7 +67,7 @@ procedure Register;
 implementation
 
 var
-  GMenuNotifier: TProjectPlusMenuNotifier;
+  GMenuNotifier: IOTAProjectMenuItemCreatorNotifier;
   GNotifierIndex: Integer = -1;
 
 const
@@ -411,7 +411,7 @@ begin
     on E: Exception do
     begin
       TDebugLog.Log('ProjectsManagerPlus: Error adding menu item creator notifier: ' + E.Message);
-      FreeAndNil(GMenuNotifier);
+      GMenuNotifier := nil;
     end;
   end;
 
