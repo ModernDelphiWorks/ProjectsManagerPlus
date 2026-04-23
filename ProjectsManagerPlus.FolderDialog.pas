@@ -3,18 +3,10 @@ unit ProjectsManagerPlus.FolderDialog;
 interface
 
 uses
-  Winapi.Windows, 
-  Winapi.Messages, 
-  System.SysUtils, 
-  System.Variants, 
   System.Classes,
-  Vcl.Graphics, 
-  Vcl.Controls, 
-  Vcl.Forms, 
-  Vcl.Dialogs,
-  Vcl.StdCtrls, 
-  Vcl.FileCtrl,
-  Vcl.ExtCtrls;
+  Vcl.Controls,
+  Vcl.Forms,
+  Vcl.StdCtrls;
 
 type
   TFolderSelectionDialog = class(TForm)
@@ -29,16 +21,21 @@ type
     function _GetSelectedFolder: string;
     function _GetIncludeSubfolders: Boolean;
   public
+    class function Execute(const AInitialDir: string; out AFolder: string; out AIncludeSubfolders: Boolean): Boolean;
     property SelectedFolder: string read _GetSelectedFolder;
     property IncludeSubfolders: Boolean read _GetIncludeSubfolders;
-    class function Execute(const AInitialDir: string; out AFolder: string; out AIncludeSubfolders: Boolean): Boolean;
   end;
 
 implementation
 
+uses
+  System.SysUtils,
+  Vcl.FileCtrl;
+
 {$R *.dfm}
 
-class function TFolderSelectionDialog.Execute(const AInitialDir: string; out AFolder: string; out AIncludeSubfolders: Boolean): Boolean;
+class function TFolderSelectionDialog.Execute(const AInitialDir: string; out AFolder: string;
+  out AIncludeSubfolders: Boolean): Boolean;
 var
   LDialog: TFolderSelectionDialog;
 begin
@@ -49,7 +46,7 @@ begin
   LDialog := TFolderSelectionDialog.Create(nil);
   try
     LDialog.edtFolder.Text := AInitialDir;
-    if LDialog.ShowModal = mrOK then
+    if LDialog.ShowModal = mrOk then
     begin
       AFolder := LDialog.SelectedFolder;
       AIncludeSubfolders := LDialog.IncludeSubfolders;

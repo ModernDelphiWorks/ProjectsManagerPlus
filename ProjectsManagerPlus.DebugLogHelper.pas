@@ -2,10 +2,6 @@ unit ProjectsManagerPlus.DebugLogHelper;
 
 interface
 
-uses
-  Winapi.Windows,
-  System.SysUtils;
-
 type
   TLogLevel = (llInfo, llWarn, llError, llDebug);
 
@@ -16,10 +12,13 @@ type
     /// Envia mensagem para o DebugView com prefixo padrão, thread ID e timestamp.
     /// </summary>
     class procedure Log(const AMessage: string; ALevel: TLogLevel = llInfo); static;
-    class procedure LogFmt(const ALevel: TLogLevel; const AFormat: string; const AArgs: array of const); static;
   end;
 
 implementation
+
+uses
+  Winapi.Windows,
+  System.SysUtils;
 
 const
   LOG_TAGS: array [TLogLevel] of string = (
@@ -47,13 +46,7 @@ begin
   OutputDebugString(PChar(LFormatted));
 end;
 
-class procedure TDebugLog.LogFmt(const ALevel: TLogLevel; const AFormat: string; const AArgs: array of const);
-begin
-  Log(Format(AFormat, AArgs), ALevel);
-end;
-
 initialization
   TDebugLog.Prefix := '[ProjectsManagerPlus]';
-
 end.
 

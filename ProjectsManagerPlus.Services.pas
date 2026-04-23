@@ -2,11 +2,6 @@ unit ProjectsManagerPlus.Services;
 
 interface
 
-uses
-  ToolsAPI,
-  System.SysUtils,
-  System.Classes;
-
 type
   /// <summary>
   /// Provides helper methods for file operations.
@@ -18,6 +13,9 @@ type
   end;
 
 implementation
+
+uses
+  System.SysUtils;
 
 { TFileService }
 
