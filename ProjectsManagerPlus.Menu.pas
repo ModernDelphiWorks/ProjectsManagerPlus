@@ -89,22 +89,22 @@ end;
 
 procedure TProjectPlusMenu.AfterSave;
 begin
-
+  // IOTANotifier implementation - Not used
 end;
 
 procedure TProjectPlusMenu.BeforeSave;
 begin
-
+  // IOTANotifier implementation - Not used
 end;
 
 procedure TProjectPlusMenu.Destroyed;
 begin
-
+  // IOTANotifier implementation - Not used
 end;
 
 procedure TProjectPlusMenu.Modified;
 begin
-
+  // IOTANotifier implementation - Not used
 end;
 
 { IOTALocalMenu }
